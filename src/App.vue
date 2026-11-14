@@ -7,6 +7,8 @@ const storageNote = ref(savedMessage);
 const tasks = ref([]);
 const filter = ref('all');
 const draft = ref('');
+const editingId = ref(null);
+const editDraft = ref('');
 const input = ref(null);
 const list = ref(null);
 let nextId = 0;
@@ -69,7 +71,27 @@ function toggleTask(task, done, index) {
 function removeTask(task, index) {
   tasks.value.splice(tasks.value.indexOf(task), 1);
   save();
-  focusRow(index, 'button');
+  focusRow(index, '.remove');
+}
+
+function startEdit(task, index) {
+  editingId.value = task.id;
+  editDraft.value = task.title;
+  focusRow(index, 'input');
+}
+
+function finishEdit(index) {
+  editingId.value = null;
+  focusRow(index, '.edit');
+}
+
+function saveEdit(task, index) {
+  const title = editDraft.value.trim();
+  if (!title) return;
+
+  task.title = title;
+  save();
+  finishEdit(index);
 }
 </script>
 
@@ -103,7 +125,7 @@ function removeTask(task, index) {
             type="button"
             :data-filter="option.value"
             :aria-pressed="filter === option.value"
-            @click="filter = option.value"
+            @click="filter = option.value; editingId = null"
           >{{ option.label }}</button>
         </nav>
         <span id="count" role="status">剩余 {{ remaining }} 项</span>
@@ -111,13 +133,28 @@ function removeTask(task, index) {
 
       <ul id="list" ref="list">
         <li v-for="(task, index) in visible" :key="task.id" :class="{ done: task.done }">
-          <label>
-            <input type="checkbox" :checked="task.done" @change="toggleTask(task, $event.target.checked, index)">
-            <span>{{ task.title }}</span>
-          </label>
-          <button type="button" class="remove" :aria-label="'删除 ' + task.title" @click="removeTask(task, index)">
-            删除
-          </button>
+          <form
+            v-if="editingId === task.id"
+            class="edit-form"
+            @submit.prevent="saveEdit(task, index)"
+            @keydown.esc.prevent="finishEdit(index)"
+          >
+            <input v-model="editDraft" aria-label="编辑任务名称" maxlength="200" required>
+            <button type="submit" :disabled="!editDraft.trim()">保存</button>
+            <button type="button" @click="finishEdit(index)">取消</button>
+          </form>
+          <template v-else>
+            <label>
+              <input type="checkbox" :checked="task.done" @change="toggleTask(task, $event.target.checked, index)">
+              <span>{{ task.title }}</span>
+            </label>
+            <button type="button" class="edit" :aria-label="'编辑 ' + task.title" @click="startEdit(task, index)">
+              编辑
+            </button>
+            <button type="button" class="remove" :aria-label="'删除 ' + task.title" @click="removeTask(task, index)">
+              删除
+            </button>
+          </template>
         </li>
       </ul>
       <p v-if="!visible.length" id="empty">{{ emptyMessage }}</p>
@@ -128,6 +165,20 @@ function removeTask(task, index) {
 </template>
 
 <style>
+.edit-form {
+  width: 100%;
+}
+
+.edit-form button,
+.edit {
+  flex: none;
+}
+
+.edit-form button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 * {
   box-sizing: border-box;
 }
