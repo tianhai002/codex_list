@@ -1,0 +1,22 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+*.log
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Deployment exports and existing Sites checkouts
+*.tar.gz
+/todo-list/
+/todo-list-publish/
+/todo-list-vue/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
