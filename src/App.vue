@@ -77,7 +77,7 @@ function removeTask(task, index) {
   <main>
     <header>
       <div class="eyebrow">MY TASKS / 个人待办</div>
-      <h1>新一天开始</h1>
+      <h1>今日清单</h1>
       <p>把想到的事记下来，一件一件完成。</p>
     </header>
 
